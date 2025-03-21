@@ -1,21 +1,22 @@
-let currentQuestionIndex = 0;
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
 
-function nextQuestion() {
-  currentQuestionIndex++;
-  if (currentQuestionIndex < questions.length) {
-    // Move to the next question
-    Object.values(players).forEach((p) => (p.reviewed = false)); // Reset reviews
-    io.emit("new-question", questions[currentQuestionIndex]);
-  } else {
-    // Game over - show final scores
-    io.emit("game-over", getSortedLeaderboard());
-  }
-}
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } }); // ✅ This must be defined before io.on()
+
+app.use(cors());
+
+let players = {};
 
 io.on("connection", (socket) => {
-  socket.on("start-game", () => {
-    currentQuestionIndex = 0;
-    io.emit("new-question", questions[currentQuestionIndex]);
+  console.log("Player connected:", socket.id);
+
+  socket.on("join-game", (name) => {
+    players[socket.id] = { name, score: 500, reviewed: false };
+    io.emit("update-leaderboard", getSortedLeaderboard());
   });
 
   socket.on("peer-review", ({ playerId, correct }) => {
@@ -25,9 +26,26 @@ io.on("connection", (socket) => {
       io.emit("update-leaderboard", getSortedLeaderboard());
     }
 
-    // If all answers are reviewed, move to the next question
+    // Auto-advance to next question if all are reviewed
     if (Object.values(players).every((p) => p.reviewed)) {
-      setTimeout(nextQuestion, 3000); // 3-second delay before next question
+      setTimeout(nextQuestion, 3000);
     }
   });
+
+  socket.on("disconnect", () => {
+    delete players[socket.id];
+    io.emit("update-leaderboard", getSortedLeaderboard());
+  });
 });
+
+function getSortedLeaderboard() {
+  return Object.values(players)
+    .sort((a, b) => b.score - a.score)
+    .map((p, index) => ({
+      rank: index + 1,
+      name: p.name,
+      score: p.score,
+    }));
+}
+
+server.listen(3001, () => console.log("Server running on port 3001"));
