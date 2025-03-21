@@ -5,7 +5,7 @@ import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
 
 
-const socket = io("http://localhost:3001");
+const socket = io("https://csiahlapp.onrender.com");
 
 export default function App() {
   const [name, setName] = useState("");
