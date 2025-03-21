@@ -5,7 +5,9 @@ import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
 
 
-const socket = io("https://csiahl.onrender.com");
+const socket = io("https://csiahl.onrender.com", {
+  transports: ["websocket"], 
+});
 
 export default function App() {
   const [name, setName] = useState("");
