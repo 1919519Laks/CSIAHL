@@ -21,7 +21,7 @@ export default function App() {
     setIsHost(host); // If the player selects host, set to true
     socket.emit("join-game", playerName);
     setJoined(true);
-  };  
+  };
 
   return (
     <div className="flex justify-center gap-10 p-5">
