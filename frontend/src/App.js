@@ -5,8 +5,11 @@ import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
 import EndGameButton from "./components/EndGameButton"; // ✅ Import the button
 
-const socket = io("https://your-backend-url.onrender.com");
+const socket = io(process.env.BASE_URL, {
+  transports: ["websocket"],
+});
 
+console.log("Socket connected:", socket.connected); // Add this line
 export default function App() {
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
