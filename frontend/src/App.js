@@ -5,8 +5,9 @@ import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
 import EndGameButton from "./components/EndGameButton"; // ✅ Import the button
 
-const socket = io(process.env.BASE_URL, {
-  transports: ["websocket"],
+
+const socket = io("https://csiahl.onrender.com", {
+  transports: ["websocket"], 
 });
 
 console.log("Socket connected:", socket.connected); // Add this line
