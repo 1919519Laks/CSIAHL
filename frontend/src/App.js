@@ -3,25 +3,32 @@ import { io } from "socket.io-client";
 import Lobby from "./components/Lobby";
 import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
+import EndGameButton from "./components/EndGameButton"; // ✅ Import the button
 
-
-const socket = io(process.env.BASE_URL, { 
-    transports: ["websocket"],
-});
+const socket = io("https://your-backend-url.onrender.com");
 
 export default function App() {
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
+  const [isHost, setIsHost] = useState(false); // Track if the player is the host
 
-  const handleJoin = (playerName) => {
+  const handleJoin = (playerName, host = false) => {
     setName(playerName);
+    setIsHost(host); // If the player selects host, set to true
     socket.emit("join-game", playerName);
     setJoined(true);
   };
 
   return (
     <div className="flex justify-center gap-10 p-5">
-      {!joined ? <Lobby onJoin={handleJoin} /> : <Game socket={socket} />}
+      {!joined ? (
+        <Lobby onJoin={handleJoin} />
+      ) : (
+        <div>
+          <Game socket={socket} />
+          {isHost && <EndGameButton socket={socket} />} {/* ✅ Show End Game button only for host */}
+        </div>
+      )}
       <Leaderboard socket={socket} />
     </div>
   );

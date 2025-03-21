@@ -36,6 +36,10 @@ io.on("connection", (socket) => {
     delete players[socket.id];
     io.emit("update-leaderboard", getSortedLeaderboard());
   });
+  socket.on("end-game", () => {
+    io.emit("game-over", getSortedLeaderboard());
+  });
+  
 });
 
 function getSortedLeaderboard() {
