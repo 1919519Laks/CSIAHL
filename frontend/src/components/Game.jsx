@@ -6,7 +6,6 @@ export default function Game({ socket }) {
   const [bet, setBet] = useState(25);
 
   useEffect(() => {
-    // Receive assigned answer for review
     socket.on("review-answer", (assignedAnswer) => {
       setAnswerToReview(assignedAnswer);
     });
@@ -18,13 +17,13 @@ export default function Game({ socket }) {
 
   const submitAnswer = () => {
     socket.emit("submit-answer", { answer, bet });
-    setAnswer(""); // Clear input after submitting
+    setAnswer("");
   };
 
   const reviewAnswer = (correct) => {
     if (answerToReview) {
       socket.emit("peer-review", { playerId: answerToReview.id, correct });
-      setAnswerToReview(null); // Remove the reviewed answer
+      setAnswerToReview(null);
     }
   };
 
