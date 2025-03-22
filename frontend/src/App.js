@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import Lobby from "./components/Lobby";
 import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
 import EndGameButton from "./components/EndGameButton";
-import StartCorrectionButton from './components/StartCorrectionButton';
+import StartCorrectionButton from "./components/StartCorrectionButton"; // Import the new button
 
 const socket = io("https://csiahl.onrender.com", {
   transports: ["websocket"],
@@ -13,11 +13,11 @@ const socket = io("https://csiahl.onrender.com", {
 export default function App() {
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
-  const [isHost, setIsHost] = useState(false); // Track if the player is the host
+  const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
     socket.on("set-host", (status) => {
-      setIsHost(status); // If true, this player is the host
+      setIsHost(status);
     });
 
     return () => {
@@ -37,9 +37,9 @@ export default function App() {
         <Lobby onJoin={handleJoin} />
       ) : (
         <div>
-          <Game socket={socket} />
-          {isHost && <EndGameButton socket={socket} />} {/* ✅ Only show for host */}
-          {isHost && <StartCorrectionButton socket={socket} />}
+          <Game socket={socket} isHost={isHost} /> {/* Pass isHost prop */}
+          {isHost && <EndGameButton socket={socket} />}
+          {isHost && <StartCorrectionButton socket={socket} />} {/* Add the new button */}
         </div>
       )}
       <Leaderboard socket={socket} />
