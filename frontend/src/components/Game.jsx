@@ -1,23 +1,19 @@
 import { useState, useEffect } from "react";
 
 export default function Game({ socket }) {
-  const [question, setQuestion] = useState("");
+  const [answerToReview, setAnswerToReview] = useState(null);
   const [answer, setAnswer] = useState("");
   const [bet, setBet] = useState(25);
-  const [answersForReview, setAnswersForReview] = useState([]); // Store answers for peer review
 
   useEffect(() => {
-    socket.on("new-question", (q) => setQuestion(q.question));
-
-    // Get answers submitted by other players for review
-    socket.on("awaiting-peer-review", (players) => {
-      const reviewList = Object.entries(players)
-        .filter(([id, p]) => p.answer && !p.reviewed) // Get players who answered but are not reviewed
-        .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
-
-      setAnswersForReview(reviewList);
+    // Receive assigned answer for review
+    socket.on("review-answer", (assignedAnswer) => {
+      setAnswerToReview(assignedAnswer);
     });
 
+    return () => {
+      socket.off("review-answer");
+    };
   }, [socket]);
 
   const submitAnswer = () => {
@@ -25,15 +21,15 @@ export default function Game({ socket }) {
     setAnswer(""); // Clear input after submitting
   };
 
-  const reviewAnswer = (playerId, correct) => {
-    socket.emit("peer-review", { playerId, correct });
-    setAnswersForReview((prev) => prev.filter((p) => p.id !== playerId)); // Remove reviewed answer
+  const reviewAnswer = (correct) => {
+    if (answerToReview) {
+      socket.emit("peer-review", { playerId: answerToReview.id, correct });
+      setAnswerToReview(null); // Remove the reviewed answer
+    }
   };
 
   return (
     <div className="p-5">
-      <h1 className="text-2xl">{question}</h1>
-      
       {/* Answer Submission */}
       <input
         type="text"
@@ -54,26 +50,22 @@ export default function Game({ socket }) {
       </button>
 
       {/* Peer Review Section */}
-      {answersForReview.length > 0 && (
+      {answerToReview && (
         <div className="mt-5 p-4 border bg-gray-200">
           <h2 className="text-xl font-bold">Peer Review</h2>
-          {answersForReview.map((p) => (
-            <div key={p.id} className="p-2 border rounded mb-2 bg-white">
-              <p><strong>{p.name}:</strong> {p.answer}</p>
-              <button
-                onClick={() => reviewAnswer(p.id, true)}
-                className="bg-blue-500 text-white p-2 mr-2"
-              >
-                Correct ✅
-              </button>
-              <button
-                onClick={() => reviewAnswer(p.id, false)}
-                className="bg-red-500 text-white p-2"
-              >
-                Wrong ❌
-              </button>
-            </div>
-          ))}
+          <p><strong>{answerToReview.name}:</strong> {answerToReview.answer}</p>
+          <button
+            onClick={() => reviewAnswer(true)}
+            className="bg-blue-500 text-white p-2 mr-2"
+          >
+            Correct ✅
+          </button>
+          <button
+            onClick={() => reviewAnswer(false)}
+            className="bg-red-500 text-white p-2"
+          >
+            Wrong ❌
+          </button>
         </div>
       )}
     </div>
