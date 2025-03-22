@@ -31,7 +31,8 @@ io.on("connection", (socket) => {
       players[socket.id].bet = bet;
       players[socket.id].reviewed = false;
     }
-    distributeAnswersForReview();
+    // Remove this line!
+    // distributeAnswersForReview();
   });
 
   socket.on("peer-review", ({ playerId, correct }) => {
@@ -43,7 +44,7 @@ io.on("connection", (socket) => {
 
     if (Object.values(players).every((p) => p.reviewed)) {
       setTimeout(resetForNextRound, 3000);
-      io.emit("enable-submission"); // Re-enable submission
+      io.emit("enable-submission");
     }
   });
 
@@ -58,7 +59,7 @@ io.on("connection", (socket) => {
 
   socket.on("start-correction", () => {
     distributeAnswersForReview();
-    io.emit("disable-submission"); // Disable submission
+    io.emit("disable-submission");
   });
 });
 

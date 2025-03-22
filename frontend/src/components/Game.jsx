@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 
-export default function Game({ socket, isHost }) { // Receive isHost prop
+export default function Game({ socket, isHost }) {
   const [answerToReview, setAnswerToReview] = useState(null);
   const [answer, setAnswer] = useState("");
   const [bet, setBet] = useState(25);
-  const [disabled, setDisabled] = useState(false); // New state
+  const [disabled, setDisabled] = useState(false);
+  const [showReview, setShowReview] = useState(false); // New state
 
   useEffect(() => {
     socket.on("review-answer", (assignedAnswer) => {
       setAnswerToReview(assignedAnswer);
+      setShowReview(true); // Show review section
     });
 
     socket.on("disable-submission", () => {
@@ -17,6 +19,7 @@ export default function Game({ socket, isHost }) { // Receive isHost prop
 
     socket.on("enable-submission", () => {
       setDisabled(false);
+      setShowReview(false); // Hide review section
     });
 
     return () => {
@@ -40,14 +43,14 @@ export default function Game({ socket, isHost }) { // Receive isHost prop
 
   return (
     <div className="p-5">
-      {!isHost && ( // Hide for host
+      {!isHost && (
         <>
           <input
             type="text"
             className="border p-2"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            disabled={disabled} // Disable input
+            disabled={disabled}
           />
           <input
             type="number"
@@ -64,7 +67,7 @@ export default function Game({ socket, isHost }) { // Receive isHost prop
         </>
       )}
 
-      {answerToReview && (
+      {showReview && answerToReview && ( // Only show when showReview is true
         <div className="mt-5 p-4 border bg-gray-200">
           <h2 className="text-xl font-bold">Peer Review</h2>
           <p>
