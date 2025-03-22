@@ -5,12 +5,12 @@ const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } }); // ✅ Initialize `io` before using it
+const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(cors());
 
 let players = {};
-let hostId = null; // Track the host
+let hostId = null;
 
 io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
@@ -31,8 +31,7 @@ io.on("connection", (socket) => {
       players[socket.id].bet = bet;
       players[socket.id].reviewed = false;
     }
-
-    distributeAnswersForReview(); // 🔹 Call function to shuffle and assign answers
+    distributeAnswersForReview();
   });
 
   socket.on("peer-review", ({ playerId, correct }) => {
@@ -44,6 +43,7 @@ io.on("connection", (socket) => {
 
     if (Object.values(players).every((p) => p.reviewed)) {
       setTimeout(resetForNextRound, 3000);
+      io.emit("enable-submission"); // Re-enable submission
     }
   });
 
@@ -55,29 +55,32 @@ io.on("connection", (socket) => {
   socket.on("end-game", () => {
     io.emit("game-over", getSortedLeaderboard());
   });
+
+  socket.on("start-correction", () => {
+    distributeAnswersForReview();
+    io.emit("disable-submission"); // Disable submission
+  });
 });
 
-// **🔹 Distribute answers randomly for peer review**
 function distributeAnswersForReview() {
   let reviewList = Object.entries(players)
     .filter(([id, p]) => p.answer && !p.reviewed)
     .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
 
-  reviewList = shuffle(reviewList); // 🔹 Shuffle answers randomly
+  reviewList = shuffle(reviewList);
 
-  let playerIds = shuffle(Object.keys(players)); // 🔹 Shuffle player order
+  let playerIds = shuffle(Object.keys(players));
   let assignedReviews = {};
 
   playerIds.forEach((playerId) => {
     let answerToReview = reviewList.find((ans) => ans.id !== playerId && !assignedReviews[ans.id]);
     if (answerToReview) {
-      assignedReviews[answerToReview.id] = true; // Mark this answer as assigned
+      assignedReviews[answerToReview.id] = true;
       io.to(playerId).emit("review-answer", answerToReview);
     }
   });
 }
 
-// **🔹 Fisher-Yates Shuffle Function**
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -86,7 +89,6 @@ function shuffle(array) {
   return array;
 }
 
-// **🔹 Reset answers for the next round**
 function resetForNextRound() {
   Object.values(players).forEach(p => {
     p.answer = null;
