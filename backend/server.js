@@ -72,20 +72,22 @@ io.on("connection", (socket) => {
 
 function distributeAnswersForReview() {
   let reviewList = Object.entries(players)
-    .filter(([id, p]) => p.answer && !p.reviewed && id !== Object.keys(players).find((key) => players[key].isHost))
-    .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
+      .filter(([id, p]) => p.answer && !p.reviewed && !p.isHost)
+      .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
 
-  reviewList = shuffle(reviewList);
-
-  let playerIds = shuffle(Object.keys(players).filter((id) => !players[id].isHost));
+  let playerIds = Object.keys(players).filter((id) => !players[id].isHost);
   let assignedReviews = {};
 
+  if (reviewList.length === 0 || playerIds.length === 0) {
+      return; // No reviews needed or no players to review
+  }
+
   playerIds.forEach((playerId) => {
-    let answerToReview = reviewList.find((ans) => ans.id !== playerId && !assignedReviews[ans.id]);
-    if (answerToReview) {
-      assignedReviews[answerToReview.id] = true;
-      io.to(playerId).emit("review-answer", answerToReview);
-    }
+      let answerToReview = reviewList.find((ans) => ans.id !== playerId && !assignedReviews[ans.id]);
+      if (answerToReview) {
+          assignedReviews[answerToReview.id] = true;
+          io.to(playerId).emit("review-answer", answerToReview);
+      }
   });
 }
 
