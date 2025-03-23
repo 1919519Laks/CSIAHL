@@ -43,6 +43,7 @@ io.on("connection", (socket) => {
   
     // Check if everyone has reviewed
     console.log("Player reviews:", Object.values(players).map((p) => ({ name: p.name, reviewed: p.reviewed }))); // Add this line!
+    console.log(players)
 
     if (Object.values(players).every((p) => p.reviewed)) {
       // Wait a little bit before enabling submissions
@@ -79,9 +80,8 @@ io.on("connection", (socket) => {
 
 function distributeAnswersForReview() {
   let reviewList = Object.entries(players)
-    .filter(([id, p]) => p.answer && !p.reviewed && !p.isHost)
+    .filter(([id, p]) => p.answer && !p.reviewed && !p.isHost) // Make sure !p.isHost is here
     .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
-
   let playerIds = Object.keys(players).filter((id) => !players[id].isHost);
 
   if (reviewList.length === 0 || playerIds.length === 0) {
