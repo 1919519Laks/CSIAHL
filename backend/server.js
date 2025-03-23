@@ -14,14 +14,18 @@ let hostId = null;
 
 io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
+  console.log("New connection, hostId:", hostId); // Add this line!
 
   socket.on("join-game", (name) => {
     if (!hostId) {
       hostId = socket.id;
-      console.log("Host assigned:", hostId); // Add this line!
-
+      setTimeout(() => { // Add this delay!
+        io.to(socket.id).emit("set-host", true);
+      }, 100);
+    } else {
+      io.to(socket.id).emit("set-host", false);
     }
-
+  
     players[socket.id] = { name, score: 500, reviewed: false, isHost: socket.id === hostId };
     io.emit("update-leaderboard", getSortedLeaderboard());
     io.to(socket.id).emit("set-host", socket.id === hostId);
