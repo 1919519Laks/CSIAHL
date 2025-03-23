@@ -14,7 +14,6 @@ export default function App() {
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
   const [isHost, setIsHost] = useState(false);
-  const [teamName, setTeamName] = useState("");
 
   useEffect(() => {
     socket.on("set-host", (status) => {
@@ -26,10 +25,9 @@ export default function App() {
     };
   }, []);
 
-  const handleJoin = ({ playerName, selectedTeam }) => {
+  const handleJoin = (playerName) => {
     setName(playerName);
-    setTeamName(selectedTeam);
-    socket.emit("join-game", { name: playerName, teamName: selectedTeam });
+    socket.emit("join-game", playerName);
     setJoined(true);
   };
 

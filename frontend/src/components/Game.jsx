@@ -1,62 +1,86 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-export default function Game({ socket, teamName }) {
+export default function Game({ socket, isHost }) {
+  const [answerToReview, setAnswerToReview] = useState(null);
   const [answer, setAnswer] = useState("");
-  const [bet, setBet] = useState(0);
-  const [countdown, setCountdown] = useState(null);
-  const [disableSubmit, setDisableSubmit] = useState(false);
+  const [bet, setBet] = useState(25);
+  const [disabled, setDisabled] = useState(false);
+  const [showReview, setShowReview] = useState(false);
 
   useEffect(() => {
-    socket.on("start-correction-countdown", (seconds) => {
-      setCountdown(seconds);
-      setDisableSubmit(true);
+    socket.on("review-answer", (assignedAnswer) => {
+      setAnswerToReview(assignedAnswer);
+      setShowReview(true);
+    });
+
+    socket.on("disable-submission", () => {
+      setDisabled(true);
+    });
+
+    socket.on("enable-submission", () => {
+      setDisabled(false);
+      setShowReview(false);
     });
 
     return () => {
-      socket.off("start-correction-countdown");
+      socket.off("review-answer");
+      socket.off("disable-submission");
+      socket.off("enable-submission");
     };
   }, [socket]);
 
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (countdown === 0) {
-      if (answer) {
-        handleSubmit();
-      }
-      setCountdown(null);
-      setDisableSubmit(false);
-    }
-  }, [countdown]);
-
-  const handleSubmit = () => {
-    socket.emit("submit-answer", { answer, bet, team: teamName });
+  const submitAnswer = () => {
+    socket.emit("submit-answer", { answer, bet });
     setAnswer("");
-    setBet(0);
+  };
+
+  const reviewAnswer = (correct) => {
+    if (answerToReview) {
+      socket.emit("peer-review", { playerId: answerToReview.id, correct });
+      setAnswerToReview(null);
+    }
   };
 
   return (
-    <div>
-      {countdown !== null && <p>Hurry! {countdown} seconds left to submit!</p>}
+    <div className="p-5">
+      {!isHost && (
+        <>
+          <input
+            type="text"
+            className="border p-2"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            disabled={disabled}
+          />
+          <input
+            type="number"
+            min="25"
+            max="500"
+            value={bet}
+            onChange={(e) => setBet(Number(e.target.value))}
+            className="border p-2 ml-2"
+            disabled={disabled}
+          />
+          <button onClick={submitAnswer} className="bg-green-500 text-white p-2 ml-2" disabled={disabled}>
+            Submit Answer
+          </button>
+        </>
+      )}
 
-      <input
-        type="text"
-        placeholder="Your Answer"
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Bet"
-        value={bet}
-        onChange={(e) => setBet(parseInt(e.target.value))}
-      />
-      <button onClick={handleSubmit} disabled={disableSubmit}>
-        Submit Answer
-      </button>
+      {showReview && answerToReview && (
+        <div className="mt-5 p-4 border bg-gray-200">
+          <h2 className="text-xl font-bold">Peer Review</h2>
+          <p>
+            <strong>{answerToReview.name}:</strong> {answerToReview.answer}
+          </p>
+          <button onClick={() => reviewAnswer(true)} className="bg-blue-500 text-white p-2 mr-2">
+            Correct ✅
+          </button>
+          <button onClick={() => reviewAnswer(false)} className="bg-red-500 text-white p-2">
+            Wrong ❌
+          </button>
+        </div>
+      )}
     </div>
   );
 }

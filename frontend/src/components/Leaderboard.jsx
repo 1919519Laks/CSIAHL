@@ -38,7 +38,7 @@ export default function Leaderboard({ socket }) {
       <ul>
         {leaderboard.map((player) => (
           <li key={player.name} className="mb-1 text-lg">
-            {player.name} - {player.score} pts
+            {player.rank}. {player.name} - {player.score} pts
           </li>
         ))}
       </ul>
