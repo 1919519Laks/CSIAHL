@@ -4,7 +4,7 @@ import Lobby from "./components/Lobby";
 import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
 
-const socket = io(process.env.BASE_URL, {
+const socket = io("https://csiahl.onrender.com", {
   transports: ["websocket"],
 });
 
