@@ -88,11 +88,30 @@ function distributeAnswersForReview() {
   let reviewIndex = 0;
 
   playerIds.forEach((playerId) => {
+    // Make sure we don't run out of reviews
     if (reviewIndex < reviewList.length) {
-      io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
-      reviewIndex++;
+      // Make SURE the current player is not reviewing their own answer.
+      if (reviewList[reviewIndex].id !== playerId) {
+        io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
+        reviewIndex++;
+      } else {
+        // If the next review is for the current player, skip it
+        reviewIndex++;
+        if (reviewIndex < reviewList.length) {
+          io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
+          reviewIndex++;
+        }
+      }
     }
   });
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 function shuffle(array) {
