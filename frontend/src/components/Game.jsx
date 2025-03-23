@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 export default function Game({ socket, isHost }) {
+  console.log("Game component isHost:", isHost);
   const [answerToReview, setAnswerToReview] = useState(null);
   const [answer, setAnswer] = useState("");
   const [bet, setBet] = useState(25);
@@ -43,6 +44,7 @@ export default function Game({ socket, isHost }) {
 
   return (
     <div className="p-5">
+      {isHost && <p className="text-xl font-bold mb-4">You are the Host!</p>}
       {!isHost && (
         <>
           <input
