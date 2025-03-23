@@ -42,6 +42,8 @@ io.on("connection", (socket) => {
     }
   
     // Check if everyone has reviewed
+    console.log("Player reviews:", Object.values(players).map((p) => ({ name: p.name, reviewed: p.reviewed }))); // Add this line!
+
     if (Object.values(players).every((p) => p.reviewed)) {
       // Wait a little bit before enabling submissions
       setTimeout(() => {
