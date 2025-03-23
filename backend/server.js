@@ -103,7 +103,7 @@ function shuffle(array) {
   return array;
 }
   let reviewIndex = 0; // Keep track of the current review
-
+  let playerIds = Object.keys(players).filter((id) => !players[id].isHost);
   playerIds.forEach((playerId) => {
     if (reviewIndex < reviewList.length && reviewList[reviewIndex].id !== playerId) {
       io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
