@@ -53,6 +53,8 @@ io.on("connection", (socket) => {
 
   socket.on("end-game", () => {
     io.emit("game-over", getSortedLeaderboard());
+    players = {};
+    hostId = null;
   });
 
   socket.on("start-correction", () => {
@@ -63,12 +65,12 @@ io.on("connection", (socket) => {
 
 function distributeAnswersForReview() {
   let reviewList = Object.entries(players)
-    .filter(([id, p]) => p.answer && !p.reviewed && id !== hostId) // Exclude host
+    .filter(([id, p]) => p.answer && !p.reviewed && id !== hostId)
     .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
 
   reviewList = shuffle(reviewList);
 
-  let playerIds = shuffle(Object.keys(players).filter((id) => id !== hostId)); // Exclude host from playerIds
+  let playerIds = shuffle(Object.keys(players).filter((id) => id !== hostId));
   let assignedReviews = {};
 
   playerIds.forEach((playerId) => {

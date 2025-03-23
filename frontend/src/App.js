@@ -20,8 +20,15 @@ export default function App() {
       setIsHost(status);
     });
 
+    socket.on("game-over", () => {
+      setIsHost(false);
+      setJoined(false);
+      setName("");
+    });
+
     return () => {
       socket.off("set-host");
+      socket.off("game-over");
     };
   }, []);
 
@@ -42,7 +49,7 @@ export default function App() {
           {isHost && <StartCorrectionButton socket={socket} />}
         </div>
       )}
-      <Leaderboard socket={socket} isHost={isHost}/>{/*Pass the isHost prop here*/}
+      <Leaderboard socket={socket} isHost={isHost} />
     </div>
   );
 }
