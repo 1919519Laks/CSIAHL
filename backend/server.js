@@ -81,6 +81,27 @@ function distributeAnswersForReview() {
     return; // No reviews needed or no players to review
   }
 
+  // Shuffle the arrays
+  reviewList = shuffle(reviewList);
+  playerIds = shuffle(playerIds);
+
+  let reviewIndex = 0;
+
+  playerIds.forEach((playerId) => {
+    if (reviewIndex < reviewList.length) {
+      io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
+      reviewIndex++;
+    }
+  });
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
   let reviewIndex = 0; // Keep track of the current review
 
   playerIds.forEach((playerId) => {
