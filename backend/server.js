@@ -40,15 +40,15 @@ io.on("connection", (socket) => {
       players[playerId].reviewed = true;
       io.emit("update-leaderboard", getSortedLeaderboard());
     }
-  
-    // Check if everyone (except the host) has reviewed
+
     const reviewers = Object.values(players).filter((p) => !p.isHost);
     if (reviewers.every((p) => p.reviewed)) {
       setTimeout(() => {
         resetForNextRound();
         io.emit("enable-submission");
-        console.log("Server emitted enable-submission");
-      }, 2000);
+        io.emit("correction-ended");
+        console.log("Server emitted enable-submission and correction-ended");
+      }, 3000);
     }
   });
 
@@ -77,12 +77,13 @@ io.on("connection", (socket) => {
 
 function distributeAnswersForReview() {
   let reviewList = Object.entries(players)
-    .filter(([id, p]) => p.answer && !p.reviewed && !p.isHost) // Make sure !p.isHost is here
+    .filter(([id, p]) => p.answer && !p.reviewed && !p.isHost)
     .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
+
   let playerIds = Object.keys(players).filter((id) => !players[id].isHost);
 
   if (reviewList.length === 0 || playerIds.length === 0) {
-    return; // No reviews needed or no players to review
+    return;
   }
 
   let reviewIndex = 0;
@@ -103,42 +104,6 @@ function distributeAnswersForReview() {
         console.log(`could not assign review to ${playerId}`);
     }
   });
-}
-
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-  let reviewIndex = 0; // Keep track of the current review
-  let playerIds = Object.keys(players).filter((id) => !players[id].isHost);
-  playerIds.forEach((playerId) => {
-    if (reviewIndex < reviewList.length && reviewList[reviewIndex].id !== playerId) {
-      io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
-      reviewIndex++; // Move to the next review
-    } else {
-      // If the next review is for the current player, skip it
-      reviewIndex++;
-    }
-  });
-
-
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
 }
 
 function resetForNextRound() {

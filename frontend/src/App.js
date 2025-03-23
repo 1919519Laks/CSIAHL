@@ -3,8 +3,6 @@ import { io } from "socket.io-client";
 import Lobby from "./components/Lobby";
 import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
-import EndGameButton from "./components/EndGameButton";
-import StartCorrectionButton from "./components/StartCorrectionButton";
 
 const socket = io("https://csiahl.onrender.com", {
   transports: ["websocket"],
@@ -45,8 +43,6 @@ export default function App() {
       ) : (
         <div>
           <Game socket={socket} isHost={isHost} />
-          {isHost && <EndGameButton socket={socket} />}
-          {isHost && <StartCorrectionButton socket={socket} />}
         </div>
       )}
       <Leaderboard socket={socket} isHost={isHost} />

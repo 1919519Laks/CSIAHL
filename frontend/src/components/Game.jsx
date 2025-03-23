@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import StartCorrectionButton from "./StartCorrectionButton";
 
 export default function Game({ socket, isHost }) {
   const [answerToReview, setAnswerToReview] = useState(null);
@@ -18,11 +19,8 @@ export default function Game({ socket, isHost }) {
     });
 
     socket.on("enable-submission", () => {
-      console.log("Received enable-submission event"); // Add this line!
-      console.log("Current disabled state:", disabled); // Add this line!
       setDisabled(false);
       setShowReview(false);
-      console.log("New disabled state:", disabled); // Add this line!
     });
 
     return () => {
@@ -35,6 +33,7 @@ export default function Game({ socket, isHost }) {
   const submitAnswer = () => {
     socket.emit("submit-answer", { answer, bet });
     setAnswer("");
+    console.log("Submit answer was called. disabled state:", disabled);
   };
 
   const reviewAnswer = (correct) => {
@@ -46,7 +45,7 @@ export default function Game({ socket, isHost }) {
 
   return (
     <div className="p-5">
-      {isHost && <p className="text-xl font-bold mb-4">You are the Host!</p>}
+      {isHost && <StartCorrectionButton socket={socket} />}
       {!isHost && (
         <>
           <input

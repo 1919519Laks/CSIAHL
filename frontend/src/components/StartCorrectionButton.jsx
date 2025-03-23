@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from "react";
 
 export default function StartCorrectionButton({ socket }) {
-  const [correctionStarted, setCorrectionStarted] = useState(false);
+  const [correctionInProgress, setCorrectionInProgress] = useState(false);
+
+  useEffect(() => {
+    socket.on("disable-submission", () => {
+      setCorrectionInProgress(true);
+    });
+
+    socket.on("correction-ended", () => {
+      setCorrectionInProgress(false);
+    });
+
+    return () => {
+      socket.off("disable-submission");
+      socket.off("correction-ended");
+    };
+  }, [socket]);
 
   const startCorrection = () => {
-    socket.emit('start-correction');
-    setCorrectionStarted(true);
+    socket.emit("start-correction");
   };
 
   return (
-    <button
-      onClick={startCorrection}
-      className={`px-4 py-2 rounded-md mt-4 ${
-        correctionStarted ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white'
-      }`}
-      disabled={correctionStarted}
-    >
-      {correctionStarted ? 'Correction in Progress' : 'Start Correction'}
+    <button onClick={startCorrection} disabled={correctionInProgress}>
+      {correctionInProgress ? "Correction in Progress" : "Start Correction"}
     </button>
   );
 }
