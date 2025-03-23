@@ -47,6 +47,7 @@ io.on("connection", (socket) => {
       setTimeout(() => {
           resetForNextRound();
           io.emit("enable-submission");
+          console.log("server emitted enable submission")
       }, 2000); // 2 seconds delay
     }
   });
