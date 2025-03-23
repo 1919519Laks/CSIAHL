@@ -4,7 +4,7 @@ import Lobby from "./components/Lobby";
 import Game from "./components/Game";
 import Leaderboard from "./components/Leaderboard";
 import EndGameButton from "./components/EndGameButton";
-import StartCorrectionButton from "./components/StartCorrectionButton"; // Import the new button
+import StartCorrectionButton from "./components/StartCorrectionButton";
 
 const socket = io("https://csiahl.onrender.com", {
   transports: ["websocket"],
@@ -37,12 +37,12 @@ export default function App() {
         <Lobby onJoin={handleJoin} />
       ) : (
         <div>
-          <Game socket={socket} isHost={isHost} /> {/* Pass isHost prop */}
+          <Game socket={socket} isHost={isHost} />
           {isHost && <EndGameButton socket={socket} />}
-          {isHost && <StartCorrectionButton socket={socket} />} {/* Add the new button */}
+          {isHost && <StartCorrectionButton socket={socket} />}
         </div>
       )}
-      <Leaderboard socket={socket} />
+      <Leaderboard socket={socket} isHost={isHost}/>{/*Pass the isHost prop here*/}
     </div>
   );
 }
