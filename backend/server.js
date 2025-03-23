@@ -81,27 +81,22 @@ function distributeAnswersForReview() {
     return; // No reviews needed or no players to review
   }
 
-  // Shuffle the arrays
-  reviewList = shuffle(reviewList);
-  playerIds = shuffle(playerIds);
-
   let reviewIndex = 0;
 
   playerIds.forEach((playerId) => {
-    // Make sure we don't run out of reviews
-    if (reviewIndex < reviewList.length) {
-      // Make SURE the current player is not reviewing their own answer.
-      if (reviewList[reviewIndex].id !== playerId) {
-        io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
-        reviewIndex++;
-      } else {
-        // If the next review is for the current player, skip it
-        reviewIndex++;
-        if (reviewIndex < reviewList.length) {
-          io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
-          reviewIndex++;
+    let assigned = false;
+    for (let i = 0; i < reviewList.length; i++) {
+        let potentialIndex = (reviewIndex + i) % reviewList.length;
+
+        if (reviewList[potentialIndex].id !== playerId) {
+            io.to(playerId).emit("review-answer", reviewList[potentialIndex]);
+            reviewIndex = (potentialIndex + 1) % reviewList.length;
+            assigned = true;
+            break;
         }
-      }
+    }
+    if (!assigned){
+        console.log(`could not assign review to ${playerId}`);
     }
   });
 }
