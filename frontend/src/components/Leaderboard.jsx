@@ -1,20 +1,25 @@
 import { useState, useEffect } from "react";
 
-export default function Leaderboard({ socket }) {
+export default function Leaderboard({ socket, isHost }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
-    socket.on("update-leaderboard", (data) => setLeaderboard(data));
+    socket.on("update-leaderboard", (data) => {
+      const filteredLeaderboard = data.filter((player) => !player.isHost);
+      setLeaderboard(filteredLeaderboard);
+    });
+
     socket.on("game-over", (finalScores) => {
-      setLeaderboard(finalScores);
+      const filteredFinalScores = finalScores.filter((player) => !player.isHost);
+      setLeaderboard(filteredFinalScores);
       setGameOver(true);
     });
 
-  return () => {
-    socket.off("update-leaderboard");
-    socket.off("game-over");
-  };
+    return () => {
+      socket.off("update-leaderboard");
+      socket.off("game-over");
+    };
   }, [socket]);
 
   if (gameOver) {
