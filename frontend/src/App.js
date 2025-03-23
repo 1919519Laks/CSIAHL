@@ -42,7 +42,7 @@ export default function App() {
           {isHost && <StartCorrectionButton socket={socket} />}
         </div>
       )}
-      <Leaderboard socket={socket} isHost={isHost}/>{/*Pass the isHost prop here*/}
+      <Leaderboard socket={socket} isHost={isHost} />
     </div>
   );
 }
