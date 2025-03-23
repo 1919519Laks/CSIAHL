@@ -18,8 +18,11 @@ export default function Game({ socket, isHost }) {
     });
 
     socket.on("enable-submission", () => {
+      console.log("Received enable-submission event"); // Add this line!
+      console.log("Current disabled state:", disabled); // Add this line!
       setDisabled(false);
       setShowReview(false);
+      console.log("New disabled state:", disabled); // Add this line!
     });
 
     return () => {
@@ -70,7 +73,7 @@ export default function Game({ socket, isHost }) {
 
       {showReview && answerToReview && (
         <div className="mt-5 p-4 border bg-gray-200">
-          <h2 className="text-xl font-bold">Peer Review0</h2>
+          <h2 className="text-xl font-bold">Peer Review</h2>
           <p>
             <strong>{answerToReview.name}:</strong> {answerToReview.answer}
           </p>
