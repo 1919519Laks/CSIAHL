@@ -70,7 +70,7 @@ export default function Game({ socket, isHost }) {
 
       {showReview && answerToReview && (
         <div className="mt-5 p-4 border bg-gray-200">
-          <h2 className="text-xl font-bold">Peer Review</h2>
+          <h2 className="text-xl font-bold">Peer Review0</h2>
           <p>
             <strong>{answerToReview.name}:</strong> {answerToReview.answer}
           </p>
