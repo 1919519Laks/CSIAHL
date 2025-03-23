@@ -5,12 +5,12 @@ export default function Game({ socket, isHost }) {
   const [answer, setAnswer] = useState("");
   const [bet, setBet] = useState(25);
   const [disabled, setDisabled] = useState(false);
-  const [showReview, setShowReview] = useState(false); // New state
+  const [showReview, setShowReview] = useState(false);
 
   useEffect(() => {
     socket.on("review-answer", (assignedAnswer) => {
       setAnswerToReview(assignedAnswer);
-      setShowReview(true); // Show review section
+      setShowReview(true);
     });
 
     socket.on("disable-submission", () => {
@@ -19,7 +19,7 @@ export default function Game({ socket, isHost }) {
 
     socket.on("enable-submission", () => {
       setDisabled(false);
-      setShowReview(false); // Hide review section
+      setShowReview(false);
     });
 
     return () => {
@@ -67,7 +67,7 @@ export default function Game({ socket, isHost }) {
         </>
       )}
 
-      {showReview && answerToReview && ( // Only show when showReview is true
+      {showReview && answerToReview && (
         <div className="mt-5 p-4 border bg-gray-200">
           <h2 className="text-xl font-bold">Peer Review</h2>
           <p>

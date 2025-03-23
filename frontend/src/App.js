@@ -6,10 +6,9 @@ import Leaderboard from "./components/Leaderboard";
 import EndGameButton from "./components/EndGameButton";
 import StartCorrectionButton from "./components/StartCorrectionButton"; // Import the new button
 
-const socket = io(process.env.BASE_URL, { // Updated line!
+const socket = io("https://csiahl.onrender.com", {
   transports: ["websocket"],
 });
-
 
 export default function App() {
   const [name, setName] = useState("");

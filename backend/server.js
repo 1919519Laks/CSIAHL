@@ -31,8 +31,6 @@ io.on("connection", (socket) => {
       players[socket.id].bet = bet;
       players[socket.id].reviewed = false;
     }
-    // Remove this line!
-    // distributeAnswersForReview();
   });
 
   socket.on("peer-review", ({ playerId, correct }) => {
@@ -65,12 +63,12 @@ io.on("connection", (socket) => {
 
 function distributeAnswersForReview() {
   let reviewList = Object.entries(players)
-    .filter(([id, p]) => p.answer && !p.reviewed)
+    .filter(([id, p]) => p.answer && !p.reviewed && id !== hostId) // Exclude host
     .map(([id, p]) => ({ id, name: p.name, answer: p.answer, bet: p.bet }));
 
   reviewList = shuffle(reviewList);
 
-  let playerIds = shuffle(Object.keys(players));
+  let playerIds = shuffle(Object.keys(players).filter((id) => id !== hostId)); // Exclude host from playerIds
   let assignedReviews = {};
 
   playerIds.forEach((playerId) => {
