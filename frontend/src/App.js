@@ -18,7 +18,6 @@ export default function App() {
   useEffect(() => {
     socket.on("set-host", (status) => {
       setIsHost(status);
-      console.log("set-host received:", status); // Add this line!
     });
 
     socket.on("game-over", () => {
