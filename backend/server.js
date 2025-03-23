@@ -41,17 +41,14 @@ io.on("connection", (socket) => {
       io.emit("update-leaderboard", getSortedLeaderboard());
     }
   
-    // Check if everyone has reviewed
-    console.log("Player reviews:", Object.values(players).map((p) => ({ name: p.name, reviewed: p.reviewed }))); // Add this line!
-    console.log(players)
-
-    if (Object.values(players).every((p) => p.reviewed)) {
-      // Wait a little bit before enabling submissions
+    // Check if everyone (except the host) has reviewed
+    const reviewers = Object.values(players).filter((p) => !p.isHost);
+    if (reviewers.every((p) => p.reviewed)) {
       setTimeout(() => {
-          resetForNextRound();
-          io.emit("enable-submission");
-          console.log("server emitted enable submission")
-      }, 2000); // 2 seconds delay
+        resetForNextRound();
+        io.emit("enable-submission");
+        console.log("Server emitted enable-submission");
+      }, 2000);
     }
   });
 
