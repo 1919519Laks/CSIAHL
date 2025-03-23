@@ -40,10 +40,14 @@ io.on("connection", (socket) => {
       players[playerId].reviewed = true;
       io.emit("update-leaderboard", getSortedLeaderboard());
     }
-
+  
+    // Check if everyone has reviewed
     if (Object.values(players).every((p) => p.reviewed)) {
-      setTimeout(resetForNextRound, 3000);
-      io.emit("enable-submission");
+      // Wait a little bit before enabling submissions
+      setTimeout(() => {
+          resetForNextRound();
+          io.emit("enable-submission");
+      }, 2000); // 2 seconds delay
     }
   });
 
