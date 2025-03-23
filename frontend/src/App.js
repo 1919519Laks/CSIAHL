@@ -12,21 +12,15 @@ export default function App() {
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
   const [isHost, setIsHost] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     socket.on("set-host", (status) => {
       setIsHost(status);
     });
 
-    socket.on("game-over", () => {
-      setIsHost(false);
-      setJoined(false);
-      setName("");
-    });
-
     return () => {
       socket.off("set-host");
-      socket.off("game-over");
     };
   }, []);
 
@@ -42,7 +36,7 @@ export default function App() {
         <Lobby onJoin={handleJoin} />
       ) : (
         <div>
-          <Game socket={socket} isHost={isHost} />
+          <Game socket={socket} isHost={isHost} gameOver = {gameOver} setGameOver = {setGameOver}/>
         </div>
       )}
       <Leaderboard socket={socket} isHost={isHost} />

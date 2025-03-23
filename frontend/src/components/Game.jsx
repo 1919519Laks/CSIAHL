@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import StartCorrectionButton from "./StartCorrectionButton";
 
-export default function Game({ socket, isHost }) {
+export default function Game({ socket, isHost, gameOver, setGameOver }) {
   const [answerToReview, setAnswerToReview] = useState(null);
   const [answer, setAnswer] = useState("");
   const [bet, setBet] = useState(25);
@@ -23,12 +23,17 @@ export default function Game({ socket, isHost }) {
       setShowReview(false);
     });
 
+    socket.on("game-over", () => {
+        setGameOver(true);
+    });
+
     return () => {
       socket.off("review-answer");
       socket.off("disable-submission");
       socket.off("enable-submission");
+      socket.off("game-over");
     };
-  }, [socket]);
+  }, [socket, setGameOver]);
 
   const submitAnswer = () => {
     socket.emit("submit-answer", { answer, bet });
@@ -42,6 +47,15 @@ export default function Game({ socket, isHost }) {
       setAnswerToReview(null);
     }
   };
+
+  if (gameOver) {
+      return (
+          <div className="p-5">
+              <h1>Game Over!</h1>
+              <p>Please refresh the page to play again.</p>
+          </div>
+      )
+  }
 
   return (
     <div className="p-5">
