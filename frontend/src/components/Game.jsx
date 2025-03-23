@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-export default function Game({ socket }) {
+export default function Game({ socket, teamName }) {
   const [answer, setAnswer] = useState("");
   const [bet, setBet] = useState(0);
   const [countdown, setCountdown] = useState(null);
@@ -24,7 +24,7 @@ export default function Game({ socket }) {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (countdown === 0) {
-      if (answer){
+      if (answer) {
         handleSubmit();
       }
       setCountdown(null);
@@ -33,16 +33,14 @@ export default function Game({ socket }) {
   }, [countdown]);
 
   const handleSubmit = () => {
-    socket.emit("submit-answer", { answer, bet });
+    socket.emit("submit-answer", { answer, bet, team: teamName });
     setAnswer("");
     setBet(0);
   };
 
   return (
     <div>
-      {countdown !== null && (
-        <p>Hurry! {countdown} seconds left to submit!</p>
-      )}
+      {countdown !== null && <p>Hurry! {countdown} seconds left to submit!</p>}
 
       <input
         type="text"

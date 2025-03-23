@@ -14,6 +14,7 @@ export default function App() {
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
   const [isHost, setIsHost] = useState(false);
+  const [teamName, setTeamName] = useState("");
 
   useEffect(() => {
     socket.on("set-host", (status) => {
@@ -25,9 +26,10 @@ export default function App() {
     };
   }, []);
 
-  const handleJoin = (playerName) => {
+  const handleJoin = ({ playerName, selectedTeam }) => {
     setName(playerName);
-    socket.emit("join-game", playerName);
+    setTeamName(selectedTeam);
+    socket.emit("join-game", { name: playerName, teamName: selectedTeam });
     setJoined(true);
   };
 
@@ -37,7 +39,7 @@ export default function App() {
         <Lobby onJoin={handleJoin} />
       ) : (
         <div>
-          <Game socket={socket} isHost={isHost} />
+          <Game socket={socket} isHost={isHost} teamName={teamName} />
           {isHost && <EndGameButton socket={socket} />}
           {isHost && <StartCorrectionButton socket={socket} />}
         </div>

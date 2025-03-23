@@ -45,7 +45,7 @@ export default function Leaderboard({ socket, isHost }) {
       <ul>
         {leaderboard.map((player) => (
           <li key={player.name} className="mb-1 text-lg">
-            {player.rank}. {player.name} - {player.score} pts
+            {player.name} - {player.score} pts
           </li>
         ))}
       </ul>
