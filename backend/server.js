@@ -1,79 +1,136 @@
-import React, { useState, useEffect } from "react";
-import { io } from "socket.io-client";
-import Lobby from "./components/Lobby";
-import Game from "./components/Game";
-import Leaderboard from "./components/Leaderboard";
-import EndGameButton from "./components/EndGameButton";
-import StartCorrectionButton from "./components/StartCorrectionButton";
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
+const cors = require("cors");
 
-const socket = io("https://csiahl.onrender.com", {
-  transports: ["websocket"],
+const app = express();
+app.use(cors());
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
 });
 
-export default function App() {
-  const [name, setName] = useState("");
-  const [joined, setJoined] = useState(false);
-  const [isHost, setIsHost] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameMode, setGameMode] = useState("solo");
-  const [teamSize, setTeamSize] = useState(0);
+let players = {};
+let hostId = null;
+let teams = {};
+let teamSize = 0;
+let gameMode = "solo";
 
-  useEffect(() => {
-    socket.on("set-host", (status) => {
-      setIsHost(status);
-    });
+io.on("connection", (socket) => {
+  socket.on("set-team-size", (size) => {
+    teamSize = size;
+  });
 
-    socket.on("game-started", () => {
-      setGameStarted(true);
-    });
+  socket.on("set-game-mode", (mode) => {
+    gameMode = mode;
+  });
 
-    return () => {
-      socket.off("set-host");
-      socket.off("game-started");
-    };
-  }, [socket]);
+  socket.on("join-game", ({ name }) => {
+    players[socket.id] = { name, score: 500, hasReviewed: false, isHost: false, team: null };
 
-  const handleJoin = (playerName) => {
-    setName(playerName);
-    socket.emit("join-game", { name: playerName });
-    setJoined(true);
-  };
+    if (!hostId) {
+      hostId = socket.id;
+      players[socket.id].isHost = true;
+      socket.emit("set-host", true);
+    } else {
+      socket.emit("set-host", false);
+    }
+    io.emit("update-leaderboard", Object.values(players));
+  });
 
-  const handleStartGame = () => {
-    socket.emit("start-game");
-  };
+  socket.on("start-game", () => {
+    if (gameMode === "teams" && teamSize > 0) {
+      assignTeams();
+    }
+    io.emit("game-started");
+  });
 
-  const handleTeamSizeChange = (size) => {
-    setTeamSize(size);
-    socket.emit("set-team-size", size);
-  };
+  socket.on("submit-answer", ({ answer, bet, team }) => {
+    if (players[socket.id]) {
+      players[socket.id].answer = answer;
+      players[socket.id].bet = bet;
+    }
+  });
 
-  const handleGameModeChange = (mode) => {
-    setGameMode(mode);
-    socket.emit("set-game-mode", mode);
-  };
+  socket.on("review-answer", ({ targetId, isCorrect }) => {
+    if (players[socket.id] && players[targetId]) {
+      if (isCorrect) {
+        players[targetId].score += players[targetId].bet;
+      } else {
+        players[targetId].score -= players[targetId].bet;
+      }
+      players[socket.id].hasReviewed = true;
+      io.emit("update-leaderboard", Object.values(players));
+    }
+  });
 
-  return (
-    <div className="flex justify-center gap-10 p-5">
-      {!joined ? (
-        <Lobby
-          onJoin={handleJoin}
-          isHost={isHost}
-          onTeamSizeChange={handleTeamSizeChange}
-          onStartGame={handleStartGame}
-          onGameModeChange={handleGameModeChange}
-          gameMode={gameMode}
-        />
-      ) : gameStarted ? (
-        <div>
-          <Game socket={socket} isHost={isHost} />
-          {isHost && <EndGameButton socket={socket} />}
-          {isHost && <StartCorrectionButton socket={socket} />}
-        </div>
-      ) : (
-        <p>Waiting for the host to start the game...</p>
-      )}
-      <Leaderboard socket={socket} isHost={isHost} />
-    </div>
-  );
+  socket.on("start-correction", () => {
+    io.emit("start-correction-countdown", 5);
+    io.emit("disable-submission");
+    const answers = Object.values(players).map((player) => ({
+      name: player.name,
+      answer: player.answer,
+      bet: player.bet,
+      id: player.id,
+      team: player.team,
+    }));
+    io.emit("show-answers", answers);
+  });
+
+  socket.on("end-game", () => {
+    const finalScores = Object.values(players).sort((a, b) => b.score - a.score);
+    io.emit("game-over", finalScores);
+  });
+
+  socket.on("disconnect", () => {
+    if (players[socket.id]) {
+      const teamName = players[socket.id].team;
+      if (teams[teamName]) {
+        teams[teamName] = teams[teamName].filter((id) => id !== socket.id);
+        if (teams[teamName].length === 0) {
+          delete teams[teamName];
+        }
+      }
+      delete players[socket.id];
+    }
+    if (socket.id === hostId) {
+      const playerIds = Object.keys(players);
+      if (playerIds.length > 0) {
+        hostId = playerIds[0];
+        players[hostId].isHost = true;
+        io.to(hostId).emit("set-host", true);
+      } else {
+        hostId = null;
+      }
+    }
+    io.emit("update-leaderboard", Object.values(players));
+  });
+});
+
+function assignTeams() {
+  const playerIds = Object.keys(players);
+  const shuffledIds = playerIds.sort(() => 0.5 - Math.random());
+  let teamCount = 0;
+
+  for (let i = 0; i < shuffledIds.length; i++) {
+    const playerId = shuffledIds[i];
+    const teamName = `Team ${teamCount + 1}`;
+
+    if (!teams[teamName]) {
+      teams[teamName] = [];
+    }
+
+    teams[teamName].push(playerId);
+    players[playerId].team = teamName;
+
+    if (teams[teamName].length >= teamSize) {
+      teamCount++;
+    }
+  }
 }
+
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
