@@ -81,11 +81,15 @@ function distributeAnswersForReview() {
     return; // No reviews needed or no players to review
   }
 
+  let reviewIndex = 0; // Keep track of the current review
+
   playerIds.forEach((playerId) => {
-    let answerToReviewIndex = reviewList.findIndex((ans) => ans.id !== playerId);
-    if (answerToReviewIndex !== -1) {
-      io.to(playerId).emit("review-answer", reviewList[answerToReviewIndex]);
-      reviewList.splice(answerToReviewIndex, 1); // Remove the assigned review
+    if (reviewIndex < reviewList.length && reviewList[reviewIndex].id !== playerId) {
+      io.to(playerId).emit("review-answer", reviewList[reviewIndex]);
+      reviewIndex++; // Move to the next review
+    } else {
+      // If the next review is for the current player, skip it
+      reviewIndex++;
     }
   });
 }
