@@ -18,6 +18,8 @@ io.on("connection", (socket) => {
   socket.on("join-game", (name) => {
     if (!hostId) {
       hostId = socket.id;
+      console.log("Host assigned:", hostId); // Add this line!
+
     }
 
     players[socket.id] = { name, score: 500, reviewed: false, isHost: socket.id === hostId };
