@@ -23,7 +23,12 @@ export default function App() {
       socket.off("set-host");
     };
   }, []);
-
+  useEffect(() => {
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+  
   const handleJoin = (playerName) => {
     setName(playerName);
     socket.emit("join-game", playerName);
